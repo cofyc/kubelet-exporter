@@ -5,3 +5,9 @@
 
 A exporter which translates information of kubelet summary API into prometheus
 metrics. See [docs/metrics.md](docs/metrics.md).
+
+## How to deploy it
+
+```
+kubelet apply -f deployment/daemonset.yaml
+```
