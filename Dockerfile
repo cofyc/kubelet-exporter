@@ -6,7 +6,7 @@ RUN set -eux \
     && cd /go/src/github.com/cofyc/kubelet-exporter \
     && go get github.com/golang/dep/cmd/dep \
     && dep ensure -v -vendor-only \
-    && go install github.com/cofyc/kubelet-exporter/cmd/kubelet-exporter
+    && CGO_ENABLED=0 go install github.com/cofyc/kubelet-exporter/cmd/kubelet-exporter
 
 FROM alpine:3.7
 
