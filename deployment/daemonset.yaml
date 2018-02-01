@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: kubelet-exporter
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: kubelet-exporter
+  template:
+    metadata:
+      labels:
+        app: kubelet-exporter
+      name: kubelet-exporter
+    spec:
+      containers:
+      - image: quay.io/cofyc/kubelet-exporter:latest
+        name: kubelet-exporter
+      hostNetwork: true
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
