@@ -1,4 +1,4 @@
-package main
+package collectors
 
 import (
 	"context"
@@ -14,61 +14,46 @@ import (
 )
 
 const (
-	VolumeStatsCapacityBytesKey  = "kubelet_volume_stats_capacity_bytes"
-	VolumeStatsAvailableBytesKey = "kubelet_volume_stats_available_bytes"
-	VolumeStatsUsedBytesKey      = "kubelet_volume_stats_used_bytes"
-	VolumeStatsInodesKey         = "kubelet_volume_stats_inodes"
-	VolumeStatsInodesFreeKey     = "kubelet_volume_stats_inodes_free"
-	VolumeStatsInodesUsedKey     = "kubelet_volume_stats_inodes_used"
+	volumeStatsCapacityBytesKey  = "kubelet_volume_stats_capacity_bytes"
+	volumeStatsAvailableBytesKey = "kubelet_volume_stats_available_bytes"
+	volumeStatsUsedBytesKey      = "kubelet_volume_stats_used_bytes"
+	volumeStatsInodesKey         = "kubelet_volume_stats_inodes"
+	volumeStatsInodesFreeKey     = "kubelet_volume_stats_inodes_free"
+	volumeStatsInodesUsedKey     = "kubelet_volume_stats_inodes_used"
 )
 
 var (
-	VolumeStatsCapacityBytes = prometheus.NewDesc(
-		VolumeStatsCapacityBytesKey,
+	volumeStatsCapacityBytes = prometheus.NewDesc(
+		volumeStatsCapacityBytesKey,
 		"Capacity in bytes of the volume",
 		[]string{"namespace", "persistentvolumeclaim"}, nil,
 	)
-	VolumeStatsAvailableBytes = prometheus.NewDesc(
-		VolumeStatsAvailableBytesKey,
+	volumeStatsAvailableBytes = prometheus.NewDesc(
+		volumeStatsAvailableBytesKey,
 		"Number of available bytes in the volume",
 		[]string{"namespace", "persistentvolumeclaim"}, nil,
 	)
-	VolumeStatsUsedBytes = prometheus.NewDesc(
-		VolumeStatsUsedBytesKey,
+	volumeStatsUsedBytes = prometheus.NewDesc(
+		volumeStatsUsedBytesKey,
 		"Number of used bytes in the volume",
 		[]string{"namespace", "persistentvolumeclaim"}, nil,
 	)
-	VolumeStatsInodes = prometheus.NewDesc(
-		VolumeStatsInodesKey,
+	volumeStatsInodes = prometheus.NewDesc(
+		volumeStatsInodesKey,
 		"Maximum number of inodes in the volume",
 		[]string{"namespace", "persistentvolumeclaim"}, nil,
 	)
-	VolumeStatsInodesFree = prometheus.NewDesc(
-		VolumeStatsInodesFreeKey,
+	volumeStatsInodesFree = prometheus.NewDesc(
+		volumeStatsInodesFreeKey,
 		"Number of free inodes in the volume",
 		[]string{"namespace", "persistentvolumeclaim"}, nil,
 	)
-	VolumeStatsInodesUsed = prometheus.NewDesc(
-		VolumeStatsInodesUsedKey,
+	volumeStatsInodesUsed = prometheus.NewDesc(
+		volumeStatsInodesUsedKey,
 		"Number of used inodes in the volume",
 		[]string{"namespace", "persistentvolumeclaim"}, nil,
 	)
 )
-
-// kubeletSummaryCollector collects metrics from kubelet stats summary.
-type kubeletSummaryCollector struct {
-	host string
-}
-
-// Describe implements the prometheus.Collector interface.
-func (collector *kubeletSummaryCollector) Describe(ch chan<- *prometheus.Desc) {
-	ch <- VolumeStatsCapacityBytes
-	ch <- VolumeStatsAvailableBytes
-	ch <- VolumeStatsUsedBytes
-	ch <- VolumeStatsInodes
-	ch <- VolumeStatsInodesFree
-	ch <- VolumeStatsInodesUsed
-}
 
 // Copied from https://github.com/kubernetes/kubernetes/blob/1ac56d8cbbdb72e75fb9b083f3f76afd4010e71e/pkg/kubelet/apis/stats/v1alpha1/types.go.
 
@@ -138,8 +123,28 @@ type kubeletStatsSummary struct {
 	Pods []PodStats `json:"pods"`
 }
 
+// volumeStatsCollector collects metrics from kubelet stats summary.
+type volumeStatsCollector struct {
+	host string
+}
+
+// NewVolumeStatsCollector creates a new volume stats prometheus collector.
+func NewVolumeStatsCollector(host string) prometheus.Collector {
+	return &volumeStatsCollector{host: host}
+}
+
+// Describe implements the prometheus.Collector interface.
+func (collector *volumeStatsCollector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- volumeStatsCapacityBytes
+	ch <- volumeStatsAvailableBytes
+	ch <- volumeStatsUsedBytes
+	ch <- volumeStatsInodes
+	ch <- volumeStatsInodesFree
+	ch <- volumeStatsInodesUsed
+}
+
 // Collect implements the prometheus.Collector interface.
-func (collector *kubeletSummaryCollector) Collect(ch chan<- prometheus.Metric) {
+func (collector *volumeStatsCollector) Collect(ch chan<- prometheus.Metric) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -174,12 +179,12 @@ func (collector *kubeletSummaryCollector) Collect(ch chan<- prometheus.Metric) {
 					// ignore if no PVC reference
 					continue
 				}
-				addGauge(VolumeStatsCapacityBytes, pvcRef, float64(*volumeStat.CapacityBytes))
-				addGauge(VolumeStatsAvailableBytes, pvcRef, float64(*volumeStat.AvailableBytes))
-				addGauge(VolumeStatsUsedBytes, pvcRef, float64(*volumeStat.UsedBytes))
-				addGauge(VolumeStatsInodes, pvcRef, float64(*volumeStat.Inodes))
-				addGauge(VolumeStatsInodesFree, pvcRef, float64(*volumeStat.InodesFree))
-				addGauge(VolumeStatsInodesUsed, pvcRef, float64(*volumeStat.InodesUsed))
+				addGauge(volumeStatsCapacityBytes, pvcRef, float64(*volumeStat.CapacityBytes))
+				addGauge(volumeStatsAvailableBytes, pvcRef, float64(*volumeStat.AvailableBytes))
+				addGauge(volumeStatsUsedBytes, pvcRef, float64(*volumeStat.UsedBytes))
+				addGauge(volumeStatsInodes, pvcRef, float64(*volumeStat.Inodes))
+				addGauge(volumeStatsInodesFree, pvcRef, float64(*volumeStat.InodesFree))
+				addGauge(volumeStatsInodesUsed, pvcRef, float64(*volumeStat.InodesUsed))
 			}
 		}
 	}

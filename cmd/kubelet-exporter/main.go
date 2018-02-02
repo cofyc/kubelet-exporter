@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/cofyc/kubelet-exporter/pkg/collectors"
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -75,6 +76,6 @@ func main() {
 		log.Fatal(err)
 	}
 	u.Path = "stats/summary"
-	registry.MustRegister(&kubeletSummaryCollector{host: u.String()})
+	registry.MustRegister(collectors.NewVolumeStatsCollector(u.String()))
 	metricsServer(registry, optPort)
 }
