@@ -34,13 +34,13 @@
   version = "0.8.0"
 
 [[constraint]]
-  name = "github.com/spf13/pflag"
-  version = "1.0.0"
-
-[[constraint]]
   branch = "master"
   name = "golang.org/x/net"
 
 [prune]
   go-tests = true
   unused-packages = true
+
+  [[prune.project]]
+    name = "github.com/prometheus/procfs"
+    non-go = true
