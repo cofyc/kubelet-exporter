@@ -6,8 +6,10 @@
 A exporter which translates information of kubelet summary API into prometheus
 metrics. See [docs/metrics.md](docs/metrics.md).
 
+## Releasing
+
+See [https://quay.io/repository/cofyc/kubelet-exporter?tab=tags](https://quay.io/repository/cofyc/kubelet-exporter?tab=tags).
+
 ## How to deploy it
 
-```
-kubelet apply -f deployment/daemonset.yaml
-```
+See example in [deployment](deployment).
