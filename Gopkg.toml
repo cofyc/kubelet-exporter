@@ -37,6 +37,10 @@
   branch = "master"
   name = "golang.org/x/net"
 
+[[constraint]]
+  name = "k8s.io/apimachinery"
+  branch = "release-1.9"
+
 [prune]
   go-tests = true
   unused-packages = true

@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	"golang.org/x/net/context/ctxhttp"
-
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
+	"golang.org/x/net/context/ctxhttp"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 const (
@@ -169,6 +169,7 @@ func (collector *volumeStatsCollector) Collect(ch chan<- prometheus.Metric) {
 	}
 
 	if statsSummary.Pods != nil {
+		allPVCs := sets.String{}
 		for _, podStats := range statsSummary.Pods {
 			if podStats.VolumeStats == nil {
 				continue
@@ -179,12 +180,18 @@ func (collector *volumeStatsCollector) Collect(ch chan<- prometheus.Metric) {
 					// ignore if no PVC reference
 					continue
 				}
+				pvcUniqStr := pvcRef.Namespace + pvcRef.Name
+				if allPVCs.Has(pvcUniqStr) {
+					// ignore if already collected
+					continue
+				}
 				addGauge(volumeStatsCapacityBytes, pvcRef, float64(*volumeStat.CapacityBytes))
 				addGauge(volumeStatsAvailableBytes, pvcRef, float64(*volumeStat.AvailableBytes))
 				addGauge(volumeStatsUsedBytes, pvcRef, float64(*volumeStat.UsedBytes))
 				addGauge(volumeStatsInodes, pvcRef, float64(*volumeStat.Inodes))
 				addGauge(volumeStatsInodesFree, pvcRef, float64(*volumeStat.InodesFree))
 				addGauge(volumeStatsInodesUsed, pvcRef, float64(*volumeStat.InodesUsed))
+				allPVCs.Insert(pvcUniqStr)
 			}
 		}
 	}
