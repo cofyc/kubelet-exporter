@@ -56,10 +56,6 @@ var (
 	)
 )
 
-type kubeletStatsSummary struct {
-	Pods []v1alpha1.PodStats `json:"pods"`
-}
-
 // volumeStatsCollector collects metrics from kubelet stats summary.
 type volumeStatsCollector struct {
 	host string
@@ -93,7 +89,7 @@ func (collector *volumeStatsCollector) Collect(ch chan<- prometheus.Metric) {
 	defer resp.Body.Close()
 	rBody, _ := ioutil.ReadAll(resp.Body)
 
-	statsSummary := kubeletStatsSummary{}
+	statsSummary := v1alpha1.Summary{}
 	err = json.Unmarshal(rBody, &statsSummary)
 	if err != nil {
 		glog.Errorf("failed to parse stats summary from %s: %v", collector.host, err)
